@@ -1,0 +1,28 @@
+{
+  "name": "nike-ai-retail-demo",
+  "version": "1.0.0",
+  "description": "Nike website with embedded AI avatar assistant for product comparison",
+  "main": "index.html",
+  "scripts": {
+    "start": "bash start.sh",
+    "web": "npx http-server -p 8000 -c-1 -o",
+    "scrape": "node scripts/scrape-nike.js",
+    "monitor:api": "python3 -m services.session_monitor.api",
+    "monitor:process": "python3 -m services.session_monitor.processor"
+  },
+  "keywords": [
+    "nike",
+    "ai",
+    "avatar",
+    "retail",
+    "demo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "@mendable/firecrawl-js": "^0.0.19"
+  }
+}

@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumens — AI Design Consultant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Page layout — replaces static screenshot background */
+        .background-scene {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #fff;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Announcement Bar ── */
+        .site-announcement {
+            background: #1a1a1a;
+            color: rgba(255,255,255,0.75);
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 8px 16px;
+            flex-shrink: 0;
+            z-index: 100;
+            position: relative;
+        }
+
+        /* ── Navigation Bar ── */
+        .site-nav {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e2dc;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            height: 60px;
+            flex-shrink: 0;
+            z-index: 100;
+            position: relative;
+        }
+        .site-nav-logo {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 22px;
+            font-weight: 400;
+            color: #1a1a1a;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-decoration: none;
+            margin-right: 36px;
+            flex-shrink: 0;
+        }
+        .site-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+        .site-nav-link {
+            font-size: 12px;
+            font-weight: 500;
+            color: #1a1a1a;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .site-nav-link:hover { background: #f5f3ef; }
+        .site-nav-link.sale { color: #c0392b; }
+        .site-nav-icons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .site-nav-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #1a1a1a;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .site-nav-icon-btn:hover { background: #f5f3ef; }
+        .cart-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .cart-badge.visible { display: flex; }
+
+        /* ── Hero Section ── */
+        .site-hero {
+            flex: 1;
+            /* lumens-bg.png is a full-page screenshot; shift up so only the
+               interior photo fills the hero area (not the screenshot's own nav).
+               Fine-tune between -80px and -110px after visual check. */
+            background: url('lumens-bg.png') center -95px / cover no-repeat;
+            min-height: 0;
+        }
+
+        /* ── Cart Drawer ── */
+        .cart-drawer-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .cart-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+        .cart-drawer {
+            position: fixed;
+            top: 0; right: 0; bottom: 0;
+            width: 380px;
+            background: #fff;
+            z-index: 10001;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+        }
+        .cart-drawer.open { transform: translateX(0); }
+        .cart-drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e2dc;
+            flex-shrink: 0;
+        }
+        .cart-drawer-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 20px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+        .cart-drawer-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .cart-drawer-close:hover { color: #1a1a1a; }
+        .cart-drawer-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 24px;
+        }
+        .cart-drawer-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #aaa;
+            text-align: center;
+            gap: 12px;
+        }
+        .cart-drawer-empty-text { font-size: 14px; color: #707072; }
+        .cart-item-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0ede8;
+        }
+        .cart-item-row:last-child { border-bottom: none; }
+        .cart-item-img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 6px;
+            background: #f5f3ef;
+            padding: 6px;
+            flex-shrink: 0;
+        }
+        .cart-item-details { flex: 1; min-width: 0; }
+        .cart-item-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 3px;
+            line-height: 1.4;
+        }
+        .cart-item-price { font-size: 13px; color: #707072; }
+        .cart-drawer-footer {
+            border-top: 1px solid #e5e2dc;
+            padding: 16px 24px 24px;
+            flex-shrink: 0;
+        }
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .cart-total-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cart-total-value {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 20px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+        .cart-checkout-btn {
+            width: 100%;
+            padding: 14px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .cart-checkout-btn:hover { background: #333; }
+
+        .background-branding .brand-name {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 72px;
+            font-weight: 400;
+            color: rgba(201, 169, 110, 0.12);
+            letter-spacing: 16px;
+            text-transform: uppercase;
+        }
+
+        .background-branding .brand-tagline {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 300;
+            color: rgba(201, 169, 110, 0.10);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-top: 16px;
+        }
+
+        /* Floating avatar container - bottom right */
+        .avatar-float-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            height: 500px;
+            z-index: 999999;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(201, 169, 110, 0.2);
+            background: rgba(26, 26, 26, 0.3);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .avatar-float-container.minimized {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            bottom: 20px !important;
+            right: 20px !important;
+        }
+
+        .avatar-float-container.minimized .avatar-content {
+            display: none;
+        }
+
+        .avatar-float-container.minimized .avatar-header {
+            display: none;
+        }
+
+        .avatar-float-container.minimized .minimize-btn {
+            display: none;
+        }
+
+        .avatar-float-container.minimized .expand-btn {
+            display: flex;
+        }
+
+        /* Avatar header - Lumens warm dark */
+        .avatar-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #111111 100%);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: move;
+            border-bottom: 1px solid rgba(201, 169, 110, 0.3);
+        }
+
+        .avatar-title {
+            color: #C9A96E;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .lumens-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lumens-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .avatar-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-btn {
+            background: rgba(201, 169, 110, 0.2);
+            border: none;
+            color: #C9A96E;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .control-btn:hover {
+            background: rgba(201, 169, 110, 0.35);
+        }
+
+        .expand-btn {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #111111 100%);
+            border: 2px solid rgba(201, 169, 110, 0.4);
+            color: #C9A96E;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Avatar content */
+        .avatar-content {
+            width: 100%;
+            height: calc(100% - 48px);
+            position: relative;
+            background: transparent;
+        }
+
+        #avatar-sdk-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: transparent;
+            transform: scale(1);
+            transform-origin: center center;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(20, 18, 14, 0.4);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(201, 169, 110, 0.2);
+            border-top-color: #C9A96E;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #C9A96E;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* Product Comparison Overlay */
+        .product-compare-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            padding-right: 450px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .product-compare-overlay.visible {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .product-compare-container {
+            background: #ffffff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: min(780px, calc(100vw - 400px));
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .compare-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #111111 100%);
+            color: #C9A96E;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .compare-header h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 17px;
+            font-weight: 500;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .compare-close-btn {
+            background: transparent;
+            border: none;
+            color: rgba(201, 169, 110, 0.7);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+            font-size: 18px;
+        }
+
+        .compare-close-btn:hover {
+            color: #C9A96E;
+        }
+
+        .compare-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 20px;
+            background: #f8f6f2;
+        }
+
+        .compare-content.single-product {
+            grid-template-columns: 1fr;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        .compare-content.single-product .product-card-image {
+            height: 280px;
+            padding: 30px;
+        }
+
+        .product-card {
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .product-card-image-wrap {
+            position: relative;
+            overflow: hidden;
+            background: #f5f3ef;
+        }
+
+        .product-card-image {
+            width: 100%;
+            height: 220px;
+            object-fit: contain;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.1));
+        }
+
+        .product-card-placeholder {
+            display: none;
+            height: 220px;
+            align-items: center;
+            justify-content: center;
+            background: #f5f3ef;
+            flex-direction: column;
+            color: #bcbcbc;
+            font-size: 13px;
+        }
+
+        .product-card-body {
+            padding: 16px 20px 20px;
+        }
+
+        .product-card-category {
+            font-size: 11px;
+            color: #C9A96E;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .product-card-name {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 17px;
+            font-weight: 500;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .product-card-designer {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 6px;
+            font-style: italic;
+        }
+
+        .product-card-price {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 14px;
+        }
+
+        .product-card-description {
+            font-size: 13px;
+            color: #707072;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        /* Specs table */
+        .product-specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+
+        .product-specs-table tr {
+            border-bottom: 1px solid #f0ede8;
+        }
+
+        .product-specs-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .product-specs-table td {
+            padding: 6px 0;
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        .product-specs-table td:first-child {
+            color: #999;
+            font-weight: 500;
+            width: 110px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 10px;
+        }
+
+        .product-specs-table td:last-child {
+            color: #333;
+        }
+
+        .product-card-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: #1a1a1a;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(26, 26, 26, 0.3);
+            transition: border-color 0.2s;
+        }
+
+        .product-card-link:hover {
+            border-color: #1a1a1a;
+        }
+
+        /* ── Product Card: Add to Cart ── */
+        .product-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .btn-add-to-cart {
+            flex: 1;
+            padding: 10px 14px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-add-to-cart:hover:not(:disabled) { background: #333; }
+        .btn-add-to-cart:active:not(:disabled) { transform: scale(0.97); }
+        .btn-add-to-cart.in-cart { background: #2e7d32; cursor: default; }
+        .btn-add-to-cart:disabled { opacity: 0.85; cursor: default; }
+
+        /* Newsletter Email Modal */
+        .newsletter-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .newsletter-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .newsletter-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            padding: 36px 32px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+            text-align: center;
+        }
+
+        .newsletter-modal.visible .newsletter-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .newsletter-badge {
+            display: inline-block;
+            background: #f5f3ef;
+            color: #C9A96E;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+        }
+
+        .newsletter-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin: 0 0 8px 0;
+        }
+
+        .newsletter-subtitle {
+            font-size: 14px;
+            color: #707072;
+            margin: 0 0 28px 0;
+            line-height: 1.6;
+        }
+
+        .newsletter-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .newsletter-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e2dc;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .newsletter-input:focus {
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+        }
+
+        .newsletter-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .newsletter-btn:hover {
+            background: #333;
+        }
+
+        .newsletter-btn:active {
+            transform: scale(0.98);
+        }
+
+        .newsletter-btn.submitted {
+            background: #2e7d32;
+            pointer-events: none;
+        }
+
+        .newsletter-note {
+            font-size: 11px;
+            color: #aaa;
+            margin: 16px 0 0 0;
+        }
+
+        .newsletter-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 20px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .newsletter-close:hover {
+            color: #333;
+        }
+
+        /* Demo Email Modal (initial setup) */
+        .demo-email-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 9999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .demo-email-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .demo-email-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            padding: 32px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .demo-email-modal.visible .demo-email-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .demo-email-badge {
+            display: inline-block;
+            background: #f5f3ef;
+            color: #C9A96E;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+        }
+
+        .demo-email-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin: 0 0 8px 0;
+        }
+
+        .demo-email-subtitle {
+            font-size: 14px;
+            color: #707072;
+            margin: 0 0 24px 0;
+            line-height: 1.6;
+        }
+
+        .demo-email-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .demo-email-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e2dc;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .demo-email-input:focus {
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+        }
+
+        .demo-email-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .demo-email-btn:hover {
+            background: #333;
+        }
+
+        .demo-email-note {
+            font-size: 11px;
+            color: #aaa;
+            margin: 12px 0 0 0;
+            text-align: center;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #ffffff;
+            color: #1a1a2e;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastIn 0.4s ease;
+            pointer-events: auto;
+            max-width: 420px;
+        }
+
+        .toast.toast-out {
+            animation: toastOut 0.3s ease forwards;
+        }
+
+        .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .toast-icon.success {
+            background: #2e7d32;
+        }
+
+        .toast-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .toast-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast-text-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #1a1a2e;
+        }
+
+        .toast-text-subtitle {
+            font-size: 12px;
+            color: #707072;
+            margin-top: 1px;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to { opacity: 0; transform: translateY(-20px) scale(0.9); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .product-compare-overlay {
+                padding: 20px;
+                padding-right: 420px;
+            }
+            .product-compare-container {
+                max-width: calc(100vw - 460px);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .product-compare-overlay {
+                padding: 15px;
+                padding-right: 15px;
+            }
+            .product-compare-container {
+                max-width: 95vw;
+            }
+            .compare-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .avatar-float-container {
+                width: 90vw;
+                height: 60vh;
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .avatar-float-container.minimized {
+                width: 60px;
+                height: 60px;
+            }
+
+            .background-branding .brand-name {
+                font-size: 36px;
+                letter-spacing: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Page layout — replicates Lumens website structure -->
+    <div class="background-scene">
+        <div class="site-announcement">
+            Free Shipping on Most Orders &nbsp;&bull;&nbsp; Lumens Trade Program
+        </div>
+        <nav class="site-nav">
+            <a href="#" class="site-nav-logo">Lumens</a>
+            <div class="site-nav-links">
+                <a href="#" class="site-nav-link">Lighting</a>
+                <a href="#" class="site-nav-link">Furniture</a>
+                <a href="#" class="site-nav-link">Outdoor</a>
+                <a href="#" class="site-nav-link">Fans</a>
+                <a href="#" class="site-nav-link">Decor</a>
+                <a href="#" class="site-nav-link">Shop By</a>
+                <a href="#" class="site-nav-link sale">Sale</a>
+                <a href="#" class="site-nav-link">Trade</a>
+            </div>
+            <div class="site-nav-icons">
+                <button class="site-nav-icon-btn" title="Search">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </button>
+                <button class="site-nav-icon-btn" title="Account">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </button>
+                <button class="site-nav-icon-btn" id="cart-icon-btn" title="Cart">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    <span class="cart-badge" id="cart-badge">0</span>
+                </button>
+            </div>
+        </nav>
+        <div class="site-hero"></div>
+    </div>
+
+    <!-- Cart Drawer Overlay -->
+    <div class="cart-drawer-overlay" id="cart-drawer-overlay"></div>
+    <!-- Cart Drawer Panel -->
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-drawer-header">
+            <div class="cart-drawer-title">Your Bag</div>
+            <button class="cart-drawer-close" id="cart-drawer-close">&#10005;</button>
+        </div>
+        <div class="cart-drawer-items" id="cart-drawer-items"></div>
+        <div class="cart-drawer-footer" id="cart-drawer-footer" style="display:none;">
+            <div class="cart-total-row">
+                <span class="cart-total-label">Subtotal</span>
+                <span class="cart-total-value" id="cart-drawer-total">$0</span>
+            </div>
+            <button class="cart-checkout-btn">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <!-- Demo Email Modal -->
+    <div class="demo-email-modal visible" id="demo-email-modal">
+        <div class="demo-email-content">
+            <span class="demo-email-badge">Design Consultation</span>
+            <h2 class="demo-email-title">Lumens AI Consultant</h2>
+            <p class="demo-email-subtitle">Enter your email to begin exploring the Lumens collection with our AI design consultant.</p>
+            <form class="demo-email-form" id="demo-email-form">
+                <input type="email" class="demo-email-input" id="demo-email-input" placeholder="Enter your email" required>
+                <button type="submit" class="demo-email-btn">Begin Experience</button>
+            </form>
+            <p class="demo-email-note">This data is used for demo purposes only.</p>
+        </div>
+    </div>
+
+    <!-- Newsletter Email Modal (triggered by avatar) -->
+    <div class="newsletter-modal" id="newsletter-modal">
+        <div class="newsletter-content" style="position: relative;">
+            <button class="newsletter-close" id="newsletter-close-btn">&#10005;</button>
+            <span class="newsletter-badge">Newsletter</span>
+            <h2 class="newsletter-title">Stay Inspired</h2>
+            <p class="newsletter-subtitle">Subscribe to receive the latest news about new arrivals, designer collaborations, and curated design inspiration from Lumens.</p>
+            <form class="newsletter-form" id="newsletter-form">
+                <input type="email" class="newsletter-input" id="newsletter-input" placeholder="Enter your email address" required>
+                <button type="submit" class="newsletter-btn" id="newsletter-btn">Subscribe</button>
+            </form>
+            <p class="newsletter-note">You can unsubscribe at any time.</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Floating AI Avatar -->
+    <div class="avatar-float-container" id="avatar-container">
+        <div class="avatar-header" id="avatar-header">
+            <div class="avatar-title">
+                <span class="lumens-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1.5">
+                        <path d="M9 18h6"/>
+                        <path d="M10 22h4"/>
+                        <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/>
+                    </svg>
+                </span>
+                LUMENS
+            </div>
+            <div class="avatar-controls">
+                <button class="control-btn minimize-btn" id="minimize-btn" title="Minimize">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <button class="expand-btn" id="expand-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1.5" width="28" height="28">
+                <path d="M9 18h6"/>
+                <path d="M10 22h4"/>
+                <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/>
+            </svg>
+        </button>
+
+        <div class="avatar-content">
+            <div id="avatar-sdk-container"></div>
+            <div class="loading-overlay" id="loading-overlay">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading AI Consultant...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Comparison Overlay -->
+    <div class="product-compare-overlay" id="product-compare-overlay">
+        <div class="product-compare-container">
+            <div class="compare-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1.5" width="20" height="20">
+                        <path d="M9 18h6"/>
+                        <path d="M10 22h4"/>
+                        <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/>
+                    </svg>
+                    <h2 id="compare-title">Product Comparison</h2>
+                </div>
+                <button class="compare-close-btn" id="compare-close-btn" title="Close">&#10005;</button>
+            </div>
+            <div class="compare-content" id="compare-content">
+                <!-- Product cards will be inserted here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Napster Spaces SDK -->
+    <link rel="stylesheet" href="sdk/napster-spaces-sdk.css">
+    <script src="sdk/napster-spaces-sdk.umd.js"></script>
+
+    <script>
+        // Configuration - Lumens Avatar
+        const EXPERIENCE_ID = 'YmFlZDM0ZTctZWE5My00MTY3LTg1MzgtNTcwOGQ3MDZlMWY0OmE1ODdhNDhmLTdiYTQtNGQ3ZC1hOGNkLWM4YWMxYjE3NTM0ZQ==';
+        const FUNCTIONS_LIBRARY_ID = '4da5a4b7-1079-454c-9129-e5d62b1b5cf9';
+
+        // Session Monitor API (separate container app — updated after deploy)
+        const SESSION_MONITOR_API_URL = 'https://lumens-session-monitor-api.mangostone-16490d2b.westus2.azurecontainerapps.io';
+
+        function generateProfileId() {
+            return 'profile_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        async function sendToSessionMonitor(endpoint, data) {
+            if (!SESSION_MONITOR_API_URL) return;
+            try {
+                await fetch(`${SESSION_MONITOR_API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch (e) {
+                console.warn('Session monitor error:', e);
+            }
+        }
+
+        // State
+        let spacesInstance = null;
+        let agentEmail = null;
+        let currentProfileId = null;
+        let currentSessionId = null;
+        let PRODUCT_CATALOG = [];
+        let cartItems = [];
+        let transcript = [];
+
+        // Transcript management
+        function addToTranscript(role, content, timestamp) {
+            transcript.push({
+                role,
+                content: typeof content === 'string' ? content : JSON.stringify(content),
+                timestamp: timestamp || new Date().toISOString()
+            });
+            submitTranscript(false);
+        }
+
+        function submitTranscript(final) {
+            if (!currentSessionId || !currentProfileId || transcript.length === 0) return;
+            if (!SESSION_MONITOR_API_URL) return;
+
+            const payload = {
+                session_id: currentSessionId,
+                profile_id: currentProfileId,
+                email: agentEmail,
+                transcript: transcript,
+                cart: cartItems,
+                final: final
+            };
+
+            const url = `${SESSION_MONITOR_API_URL}/api/submit-transcript`;
+
+            if (final && navigator.sendBeacon) {
+                navigator.sendBeacon(url, JSON.stringify(payload));
+            } else {
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(() => {});
+            }
+        }
+
+        // Submit final transcript on page close
+        window.addEventListener('beforeunload', () => submitTranscript(true));
+
+        // Load product catalog
+        fetch('data/products.json')
+            .then(r => r.json())
+            .then(data => {
+                PRODUCT_CATALOG = data;
+                console.log(`Loaded ${PRODUCT_CATALOG.length} products`);
+            })
+            .catch(e => console.error('Failed to load products:', e));
+
+        // DOM References
+        const avatarContainer = document.getElementById('avatar-container');
+        const avatarHeader = document.getElementById('avatar-header');
+        const minimizeBtn = document.getElementById('minimize-btn');
+        const expandBtn = document.getElementById('expand-btn');
+        const compareOverlay = document.getElementById('product-compare-overlay');
+        const compareTitle = document.getElementById('compare-title');
+        const compareContent = document.getElementById('compare-content');
+        const compareCloseBtn = document.getElementById('compare-close-btn');
+        const newsletterModal = document.getElementById('newsletter-modal');
+        const newsletterInput = document.getElementById('newsletter-input');
+        const newsletterBtn = document.getElementById('newsletter-btn');
+        const newsletterCloseBtn = document.getElementById('newsletter-close-btn');
+        const newsletterForm = document.getElementById('newsletter-form');
+        const demoEmailModal = document.getElementById('demo-email-modal');
+        const demoEmailForm = document.getElementById('demo-email-form');
+        const demoEmailInput = document.getElementById('demo-email-input');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const cartIconBtn       = document.getElementById('cart-icon-btn');
+        const cartBadge         = document.getElementById('cart-badge');
+        const cartDrawer        = document.getElementById('cart-drawer');
+        const cartDrawerOverlay = document.getElementById('cart-drawer-overlay');
+        const cartDrawerClose   = document.getElementById('cart-drawer-close');
+        const cartDrawerItems   = document.getElementById('cart-drawer-items');
+        const cartDrawerFooter  = document.getElementById('cart-drawer-footer');
+        const cartDrawerTotal   = document.getElementById('cart-drawer-total');
+
+        // Event listeners
+        minimizeBtn.addEventListener('click', () => avatarContainer.classList.add('minimized'));
+        expandBtn.addEventListener('click', () => avatarContainer.classList.remove('minimized'));
+        compareCloseBtn.addEventListener('click', closeProductComparison);
+        compareOverlay.addEventListener('click', (e) => { if (e.target === compareOverlay) closeProductComparison(); });
+        newsletterCloseBtn.addEventListener('click', closeNewsletterModal);
+        newsletterForm.addEventListener('submit', handleNewsletterSubmit);
+        demoEmailForm.addEventListener('submit', handleDemoEmailSubmit);
+        cartIconBtn.addEventListener('click', openCartDrawer);
+        cartDrawerClose.addEventListener('click', closeCartDrawer);
+        cartDrawerOverlay.addEventListener('click', closeCartDrawer);
+
+        // Event delegation: "Add to Cart" buttons inside product modal
+        compareContent.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-add-to-cart');
+            if (!btn || btn.disabled) return;
+            const productId = parseInt(btn.dataset.productId, 10);
+            const product = PRODUCT_CATALOG.find(p => p.id === productId);
+            if (!product) return;
+            if (cartItems.some(i => i.id === productId)) return;
+            cartItems.push({ id: product.id, name: product.name, price: product.price, image: product.image });
+            showToast('Added to Bag', product.name + ' — $' + product.price.toLocaleString());
+            updateCartUI();
+        });
+
+        // Hide avatar until email is entered
+        avatarContainer.style.visibility = 'hidden';
+        avatarContainer.style.pointerEvents = 'none';
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (compareOverlay.classList.contains('visible')) closeProductComparison();
+                if (newsletterModal.classList.contains('visible')) closeNewsletterModal();
+                if (cartDrawer.classList.contains('open')) closeCartDrawer();
+            }
+        });
+
+        // Make avatar draggable
+        let isDragging = false;
+        let currentX, currentY, initialX, initialY;
+
+        function setupDragging() {
+            avatarHeader.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+        }
+
+        function dragStart(e) {
+            if (avatarContainer.classList.contains('minimized')) return;
+            initialX = e.clientX - avatarContainer.offsetLeft;
+            initialY = e.clientY - avatarContainer.offsetTop;
+            if (e.target === avatarHeader || avatarHeader.contains(e.target)) {
+                isDragging = true;
+            }
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                avatarContainer.style.left = currentX + 'px';
+                avatarContainer.style.top = currentY + 'px';
+                avatarContainer.style.right = 'auto';
+                avatarContainer.style.bottom = 'auto';
+            }
+        }
+
+        function dragEnd() {
+            isDragging = false;
+        }
+
+        // Find a product by name (fuzzy matching)
+        const NOISE_WORDS = new Set([
+            'the', 'lumens', 'light', 'lights', 'lamp', 'lamps', 'show', 'me', 'product',
+            'about', 'tell', 'can', 'you', 'please', 'like', 'want', 'see', 'looking',
+            'for', 'what', 'this', 'that', 'with', 'and', 'from', 'have', 'has',
+            'more', 'other', 'another', 'something', 'anything', 'one', 'products',
+            'compare', 'comparison', 'vs', 'versus', 'between', 'difference', 'differences',
+            'best', 'most', 'expensive', 'details', 'info', 'information', 'by'
+        ]);
+
+        const HIGH_VALUE_TERMS = new Set([
+            'pendant', 'chandelier', 'sconce', 'floor', 'table', 'ceiling', 'fan', 'arc',
+            'sofa', 'chair', 'lounge', 'dining', 'rug', 'wishbone', 'eames', 'arco',
+            'tolomeo', 'twiggy', 'grasshopper', 'flowerpot', 'nelson', 'saucer', 'bubble',
+            'heracleum', 'zephyr', 'torque', 'lispenard', 'paramount', 'quill', 'shade',
+            'ph', 'aj', 'ic', 'led', 'smart', 'plywood', 'molded',
+            'poulsen', 'flos', 'artemide', 'foscarini', 'gubi', 'moooi', 'herman', 'miller',
+            'blu', 'dot', 'carl', 'hansen', 'nanimarquina', 'andtradition',
+            'white', 'black', 'brass', 'aluminum', 'marble', 'walnut', 'oak'
+        ]);
+
+        const CATEGORY_NAMES = {
+            'lighting': 'Lighting',
+            'pendant': 'Lighting',
+            'pendants': 'Lighting',
+            'chandelier': 'Lighting',
+            'chandeliers': 'Lighting',
+            'sconce': 'Lighting',
+            'sconces': 'Lighting',
+            'floor lamp': 'Lighting',
+            'floor lamps': 'Lighting',
+            'table lamp': 'Lighting',
+            'table lamps': 'Lighting',
+            'ceiling fan': 'Ceiling Fans',
+            'ceiling fans': 'Ceiling Fans',
+            'fans': 'Ceiling Fans',
+            'furniture': 'Furniture',
+            'sofa': 'Furniture',
+            'sofas': 'Furniture',
+            'chair': 'Furniture',
+            'chairs': 'Furniture',
+            'dining': 'Furniture',
+            'decor': 'Decor',
+            'rug': 'Decor',
+            'rugs': 'Decor'
+        };
+
+        const SUBCATEGORY_NAMES = {
+            'pendant': 'Pendant Lights',
+            'pendants': 'Pendant Lights',
+            'chandelier': 'Chandeliers',
+            'chandeliers': 'Chandeliers',
+            'sconce': 'Wall Sconces',
+            'sconces': 'Wall Sconces',
+            'wall light': 'Wall Sconces',
+            'floor lamp': 'Floor Lamps',
+            'floor lamps': 'Floor Lamps',
+            'table lamp': 'Table Lamps',
+            'table lamps': 'Table Lamps',
+            'ceiling fan': 'Ceiling Fans',
+            'ceiling fans': 'Ceiling Fans',
+            'sofa': 'Sofas',
+            'sofas': 'Sofas',
+            'accent chair': 'Accent Chairs',
+            'lounge chair': 'Accent Chairs',
+            'dining chair': 'Dining Chairs',
+            'dining chairs': 'Dining Chairs',
+            'rug': 'Rugs',
+            'rugs': 'Rugs'
+        };
+
+        function findProduct(name, excludeProduct) {
+            if (!name || !PRODUCT_CATALOG.length) return null;
+            const query = name.toLowerCase().trim();
+            console.log('[PRODUCT-MATCH] Finding product for query:', JSON.stringify(query), excludeProduct ? '(excluding: ' + excludeProduct.name + ')' : '');
+
+            const candidates = excludeProduct
+                ? PRODUCT_CATALOG.filter(p => p.id !== excludeProduct.id)
+                : PRODUCT_CATALOG;
+
+            // Exact full name match
+            let match = candidates.find(p => p.name.toLowerCase() === query);
+            if (match) { console.log('[PRODUCT-MATCH] Tier 1 (exact name):', match.name); return match; }
+
+            // Query contains the name or vice versa (longest match first)
+            const substringMatches = candidates.filter(p => {
+                const pName = p.name.toLowerCase();
+                return query.includes(pName) || pName.includes(query);
+            }).sort((a, b) => b.name.length - a.name.length);
+            if (substringMatches.length > 0) {
+                match = substringMatches[0];
+                console.log('[PRODUCT-MATCH] Tier 2 (substring):', match.name);
+                return match;
+            }
+
+            // Match by slug
+            const slugQuery = query.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            match = candidates.find(p => p.slug.includes(slugQuery) || slugQuery.includes(p.slug));
+            if (match) { console.log('[PRODUCT-MATCH] Tier 3 (slug):', match.name); return match; }
+
+            // Strip noise words for fuzzy matching
+            const cleanWords = query.split(/\s+/)
+                .filter(w => w.length > 1 && !NOISE_WORDS.has(w));
+
+            if (cleanWords.length === 0) return null;
+
+            // Keyword-in-name matching
+            const distinctiveQueryWords = cleanWords.filter(w => HIGH_VALUE_TERMS.has(w));
+            if (distinctiveQueryWords.length > 0) {
+                const keywordMatches = candidates.map(p => {
+                    const pLower = p.name.toLowerCase();
+                    const matchedKeywords = distinctiveQueryWords.filter(kw => pLower.includes(kw));
+                    return { product: p, matchCount: matchedKeywords.length, matchedKeywords };
+                }).filter(m => m.matchCount > 0)
+                  .sort((a, b) => b.matchCount - a.matchCount);
+
+                if (keywordMatches.length > 0 && keywordMatches[0].matchCount >= 2) {
+                    match = keywordMatches[0].product;
+                    console.log('[PRODUCT-MATCH] Tier 4 (keywords [' + keywordMatches[0].matchedKeywords.join(', ') + ']):', match.name);
+                    return match;
+                }
+            }
+
+            // Check subcategory-level queries
+            const cleanPhrase = cleanWords.join(' ');
+            for (const [key, subcatName] of Object.entries(SUBCATEGORY_NAMES)) {
+                if (cleanPhrase === key || cleanPhrase.includes(key)) {
+                    match = candidates.find(p => p.subcategory === subcatName);
+                    if (match) { console.log('[PRODUCT-MATCH] Tier 5 (subcategory):', match.name); return match; }
+                }
+            }
+
+            // Check category-level queries
+            for (const [key, catName] of Object.entries(CATEGORY_NAMES)) {
+                if (cleanPhrase === key || cleanWords.includes(key)) {
+                    match = candidates.find(p => p.category === catName);
+                    if (match) { console.log('[PRODUCT-MATCH] Tier 5 (category):', match.name); return match; }
+                }
+            }
+
+            // Weighted fuzzy scoring
+            let bestMatch = null;
+            let bestScore = 0;
+            for (const product of candidates) {
+                const productText = (product.name + ' ' + product.category + ' ' + product.subcategory + ' ' +
+                    product.designer + ' ' + product.slug + ' ' + product.description).toLowerCase();
+                let score = 0;
+                for (const word of cleanWords) {
+                    if (productText.includes(word)) {
+                        score += HIGH_VALUE_TERMS.has(word) ? 3 : 1;
+                    }
+                }
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = product;
+                }
+            }
+            if (bestScore >= 3 || (bestScore >= 1 && cleanWords.length === 1)) {
+                console.log('[PRODUCT-MATCH] Tier 6 (fuzzy score ' + bestScore + '):', bestMatch.name);
+                return bestMatch;
+            }
+
+            console.log('[PRODUCT-MATCH] No match found for:', query);
+            return null;
+        }
+
+        // Show toast notification
+        function showToast(title, subtitle) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="toast-icon success">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </span>
+                <div class="toast-text">
+                    <div class="toast-text-title">${title}</div>
+                    <div class="toast-text-subtitle">${subtitle}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // ── Cart Drawer Functions ──────────────────────────────────────────────
+
+        function openCartDrawer() {
+            renderCartDrawer();
+            cartDrawer.classList.add('open');
+            cartDrawerOverlay.classList.add('open');
+        }
+
+        function closeCartDrawer() {
+            cartDrawer.classList.remove('open');
+            cartDrawerOverlay.classList.remove('open');
+        }
+
+        function renderCartDrawer() {
+            if (cartItems.length === 0) {
+                cartDrawerItems.innerHTML = `
+                    <div class="cart-drawer-empty">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        <p class="cart-drawer-empty-text">Your bag is empty.<br>Ask our AI consultant to help you find the perfect piece.</p>
+                    </div>`;
+                cartDrawerFooter.style.display = 'none';
+            } else {
+                cartDrawerItems.innerHTML = cartItems.map(item => `
+                    <div class="cart-item-row">
+                        <img class="cart-item-img" src="${item.image || ''}" alt="${item.name}"
+                             onerror="this.style.display='none'">
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">$${item.price.toLocaleString()}</div>
+                        </div>
+                    </div>`).join('');
+                const total = cartItems.reduce((sum, i) => sum + i.price, 0);
+                cartDrawerTotal.textContent = '$' + total.toLocaleString();
+                cartDrawerFooter.style.display = '';
+            }
+        }
+
+        function updateCartUI() {
+            const count = cartItems.length;
+            cartBadge.textContent = count;
+            count > 0 ? cartBadge.classList.add('visible') : cartBadge.classList.remove('visible');
+            if (cartDrawer.classList.contains('open')) renderCartDrawer();
+            updateProductModalButtons();
+        }
+
+        function updateProductModalButtons() {
+            compareContent.querySelectorAll('.btn-add-to-cart').forEach(btn => {
+                const inCart = cartItems.some(i => i.id === parseInt(btn.dataset.productId, 10));
+                btn.textContent = inCart ? 'In Cart \u2713' : 'Add to Cart';
+                btn.classList.toggle('in-cart', inCart);
+                btn.disabled = inCart;
+            });
+        }
+
+        // Spec label mappings for display
+        const SPEC_LABELS = {
+            dimensions: 'Dimensions',
+            material: 'Material',
+            finish: 'Finish',
+            bulbType: 'Bulb Type',
+            wattage: 'Wattage',
+            colorTemperature: 'Color Temp',
+            dimmable: 'Dimmable',
+            bladeCount: 'Blades',
+            motorType: 'Motor',
+            smartEnabled: 'Smart Home',
+            cfm: 'Airflow',
+            upholstery: 'Upholstery',
+            weightCapacity: 'Weight Cap.',
+            pattern: 'Pattern',
+            careInstructions: 'Care'
+        };
+
+        // Create product card HTML
+        function createProductCard(product) {
+            let specsHtml = '<table class="product-specs-table">';
+            const specs = product.specs || {};
+            if (!product.specs) console.warn('[createProductCard] product.specs missing for:', product.name || product.id);
+            for (const [key, value] of Object.entries(specs)) {
+                const label = SPEC_LABELS[key] || key;
+                specsHtml += `<tr><td>${label}</td><td>${value}</td></tr>`;
+            }
+            specsHtml += '</table>';
+
+            return `
+                <div class="product-card">
+                    <div class="product-card-image-wrap">
+                        <img class="product-card-image" src="${product.image}" alt="${product.name}"
+                             onerror="this.style.display='none'; this.parentElement.querySelector('.product-card-placeholder').style.display='flex'">
+                        <div class="product-card-placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1" width="48" height="48">
+                                <path d="M9 18h6"/>
+                                <path d="M10 22h4"/>
+                                <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/>
+                            </svg>
+                            <span style="margin-top:8px; color:#aaa">Image Unavailable</span>
+                        </div>
+                    </div>
+                    <div class="product-card-body">
+                        <div class="product-card-category">${product.subcategory}</div>
+                        <div class="product-card-name">${product.name}</div>
+                        <div class="product-card-designer">by ${product.designer}</div>
+                        <div class="product-card-price">$${product.price.toLocaleString()}</div>
+                        <div class="product-card-description">${product.description}</div>
+                        ${specsHtml}
+                        <div class="product-card-actions">
+                            <button
+                                class="btn-add-to-cart${cartItems.some(i => i.id === product.id) ? ' in-cart' : ''}"
+                                data-product-id="${product.id}"
+                                ${cartItems.some(i => i.id === product.id) ? 'disabled' : ''}>
+                                ${cartItems.some(i => i.id === product.id) ? 'In Cart \u2713' : 'Add to Cart'}
+                            </button>
+                            <a class="product-card-link" href="${product.url}" target="_blank" rel="noopener">View on Lumens.com &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show product(s) - single product display or side-by-side comparison
+        function showProductComparison(productName1, productName2, reason) {
+            console.log('[PRODUCT-DISPLAY] showProductComparison called:', { productName1, productName2, reason });
+            const product1 = findProduct(productName1);
+            const product2 = productName2 ? findProduct(productName2, product1) : null;
+
+            if (!product1) {
+                console.error('Product not found:', productName1);
+                return { success: false, error: 'Product not found: ' + productName1 };
+            }
+
+            if (product2) {
+                compareTitle.textContent = 'Product Comparison';
+                compareContent.classList.remove('single-product');
+                compareContent.innerHTML = createProductCard(product1) + createProductCard(product2);
+                console.log(`Showing comparison: ${product1.name} vs ${product2.name} - ${reason}`);
+            } else {
+                compareTitle.textContent = product1.name;
+                compareContent.classList.add('single-product');
+                compareContent.innerHTML = createProductCard(product1);
+                console.log(`Showing product: ${product1.name} - ${reason}`);
+            }
+
+            compareOverlay.classList.add('visible');
+            return { success: true, product1: product1.name, product2: product2?.name };
+        }
+
+        // Close product display/comparison
+        function closeProductComparison() {
+            compareOverlay.classList.remove('visible');
+
+            if (spacesInstance && spacesInstance.sendMessage) {
+                spacesInstance.sendMessage({
+                    text: 'The customer has closed the product display window.',
+                    triggerResponse: true,
+                    role: 'system'
+                });
+            }
+        }
+
+        // Add to bag
+        function addToBag(productName1, productName2) {
+            console.log('[CART] addToBag called:', { productName1, productName2 });
+            const product1 = findProduct(productName1);
+            const product2 = productName2 ? findProduct(productName2, product1) : null;
+            const added = [];
+
+            if (product1) {
+                if (!cartItems.some(i => i.id === product1.id)) {
+                    cartItems.push({ id: product1.id, name: product1.name, price: product1.price, image: product1.image });
+                    showToast('Added to Bag', product1.name + ' — $' + product1.price.toLocaleString());
+                }
+                added.push(product1.name);
+            }
+
+            if (product2) {
+                if (!cartItems.some(i => i.id === product2.id)) {
+                    cartItems.push({ id: product2.id, name: product2.name, price: product2.price, image: product2.image });
+                    setTimeout(() => {
+                        showToast('Added to Bag', product2.name + ' — $' + product2.price.toLocaleString());
+                    }, 400);
+                }
+                added.push(product2.name);
+            }
+
+            if (added.length === 0) {
+                return { success: false, error: 'Product not found: ' + productName1 };
+            }
+
+            updateCartUI();
+            console.log('[CART] Cart now has', cartItems.length, 'items:', cartItems.map(i => i.name));
+            return {
+                success: true,
+                added: added,
+                cart_total: cartItems.reduce((sum, i) => sum + i.price, 0),
+                cart_count: cartItems.length
+            };
+        }
+
+        // Show newsletter modal
+        function showNewsletterModal(context) {
+            newsletterModal.classList.add('visible');
+            newsletterInput.value = '';
+            newsletterBtn.textContent = 'Subscribe';
+            newsletterBtn.classList.remove('submitted');
+            newsletterInput.focus();
+            console.log('Newsletter modal opened. Context:', context);
+        }
+
+        // Close newsletter modal
+        function closeNewsletterModal() {
+            newsletterModal.classList.remove('visible');
+        }
+
+        // Handle newsletter submission
+        function handleNewsletterSubmit(e) {
+            e.preventDefault();
+            const email = newsletterInput.value.trim();
+            if (email) {
+                newsletterBtn.textContent = 'Subscribed!';
+                newsletterBtn.classList.add('submitted');
+                showToast('Newsletter Subscribed', email);
+                console.log('Newsletter email captured:', email);
+
+                sendToSessionMonitor('/api/register-email', {
+                    email: email,
+                    profile_id: currentProfileId,
+                    source: 'newsletter'
+                });
+
+                if (spacesInstance && spacesInstance.sendMessage) {
+                    spacesInstance.sendMessage({
+                        text: `The customer has subscribed to the newsletter with email: ${email}`,
+                        triggerResponse: true,
+                        role: 'system'
+                    });
+                }
+
+                setTimeout(() => closeNewsletterModal(), 1500);
+            }
+        }
+
+        // Handle function calls from the avatar
+        function handleFunctionCall(data) {
+            const { name, arguments: args, callId } = data.payload || {};
+            console.log('[FUNC] Function call received:', name, 'callId:', callId, JSON.stringify(args));
+            if (!callId) {
+                console.warn('[FUNC] callId is falsy — sendFunctionOutput will be skipped. payload:', JSON.stringify(data.payload));
+            }
+
+            try {
+                if (name === 'show_product_compare') {
+                    const productName1 = args?.product_name_1;
+                    const productName2 = args?.product_name_2 || null;
+                    const reason = args?.comparison_reason || 'Showing product';
+
+                    const result = showProductComparison(productName1, productName2, reason);
+
+                    if (spacesInstance && callId) {
+                        const message = result.success
+                            ? (result.product2
+                                ? `Comparison displayed successfully: ${result.product1} vs ${result.product2}. The customer can now see both products side by side.`
+                                : `Product displayed successfully: ${result.product1}. The customer can now see the product details.`)
+                            : `Product not found in catalog: "${productName1}". Only use exact product names from the Lumens catalog. Available products include: PH 5 Pendant, Nelson Saucer Bubble Pendant, Heracleum III LED Chandelier, AJ Wall Sconce, IC Wall/Ceiling Light, Twiggy Arc Floor Lamp, Arco LED Floor Lamp, Grasshopper Floor Lamp, Tolomeo LED Floor Lamp, Flowerpot VP3 Table Lamp, Tolomeo Classic Table Lamp, Zephyr LED Smart Ceiling Fan, Torque Smart Ceiling Fan, Lispenard Sofa, Paramount Lounge Chair, CH24 Wishbone Chair, Eames Molded Plywood Dining Chair, Quill Medium Rug, Shade Rug.`;
+                        spacesInstance.sendFunctionOutput(callId, {
+                            success: result.success,
+                            message,
+                            product1: result.product1,
+                            product2: result.product2
+                        });
+                    }
+                } else if (name === 'add_to_bag') {
+                    const productName1 = args?.product_name_1;
+                    const productName2 = args?.product_name_2 || null;
+
+                    const result = addToBag(productName1, productName2);
+
+                    if (spacesInstance && callId) {
+                        spacesInstance.sendFunctionOutput(callId, {
+                            success: result.success,
+                            message: result.success
+                                ? `Added to bag: ${result.added.join(', ')}. Cart total: $${result.cart_total.toLocaleString()} (${result.cart_count} items)`
+                                : `Failed: ${result.error}`,
+                            ...result
+                        });
+                    }
+                } else if (name === 'capture_newsletter_email' || name === 'capture_email_summary') {
+                    const context = args?.context || 'General interest';
+                    showNewsletterModal(context);
+
+                    if (spacesInstance && callId) {
+                        spacesInstance.sendFunctionOutput(callId, {
+                            success: true,
+                            message: 'Email signup form displayed to the customer.'
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('[FUNC] Unhandled exception in handleFunctionCall for', name, ':', err);
+                if (spacesInstance && callId) {
+                    try {
+                        spacesInstance.sendFunctionOutput(callId, {
+                            success: false,
+                            message: 'An internal error occurred processing the function call.'
+                        });
+                    } catch (sendErr) {
+                        console.error('[FUNC] sendFunctionOutput also failed:', sendErr);
+                    }
+                }
+            }
+        }
+
+        // Handle data events from SDK
+        function handleOnData(data) {
+            const t = data?.type || 'NO_TYPE';
+            const action = data?.payload?.data?.message?.action || data?.payload?.action || '?';
+            const msgType = data?.payload?.data?.message?.type || '?';
+            const role = data?.payload?.data?.message?.role || '?';
+            const hasContent = !!(data?.payload?.data?.message?.content);
+            console.log(`[SDK-DEBUG] type=${t} action=${action} msgType=${msgType} role=${role} hasContent=${hasContent}`);
+
+            // Capture session ID and link to profile
+            if (data?.type === 'NAPSTER_SPACES_SESSION_STARTED' && data?.payload?.sessionId) {
+                const rawSessionId = data.payload.sessionId;
+                const napsterSessionId = btoa('undefined:' + rawSessionId);
+                currentSessionId = napsterSessionId;
+                console.log('Session started - Raw ID:', rawSessionId, 'Napster ID:', napsterSessionId);
+
+                if (currentProfileId) {
+                    sendToSessionMonitor('/api/link-session', {
+                        session_id: currentSessionId,
+                        profile_id: currentProfileId
+                    });
+                    console.log('Linked session to profile:', currentProfileId);
+                }
+                return;
+            }
+
+            // Capture completed messages for transcript
+            if (data?.type === 'NAPSTER_SPACES_DATA_MESSAGES') {
+                const msg = data?.payload?.data?.message || data?.payload;
+                if (msg?.action === 'completed' && msg?.type === 'message' && msg?.content) {
+                    const role = msg.role === 'assistant' ? 'agent' : msg.role;
+                    addToTranscript(role, msg.content, msg.timestamp);
+                }
+            }
+
+            // Standard function call format
+            if (data?.type === 'NAPSTER_SPACES_FUNCTION_CALL') {
+                handleFunctionCall(data);
+                return;
+            }
+
+            // DATA_MESSAGES format — intercept function calls
+            if (data?.type === 'NAPSTER_SPACES_DATA_MESSAGES' &&
+                data?.payload?.data?.message?.type === 'function_call' &&
+                data?.payload?.data?.message?.action === 'completed') {
+                const message = data.payload.data.message;
+                let content = {};
+                try {
+                    content = typeof message.content === 'string' ? JSON.parse(message.content) : message.content || {};
+                } catch (e) {
+                    console.error('Failed to parse function content:', e);
+                    return;
+                }
+
+                console.log('[FUNC] Function call content:', JSON.stringify(content));
+
+                // Detect function by name field OR by content shape (SDK may omit name)
+                const funcName = message.name || message.function_name || content.name
+                    || (content.product_name_1 && content.comparison_reason ? 'show_product_compare' : '')
+                    || (content.product_name_1 ? 'add_to_bag' : '')
+                    || (content.newsletter_email || content.context ? 'capture_newsletter_email' : '');
+
+                if (funcName === 'show_product_compare' || funcName === 'add_to_bag' || funcName === 'capture_newsletter_email' || funcName === 'capture_email_summary') {
+                    const resolvedCallId = message.call_id || message.callId || message.id || null;
+                    if (!resolvedCallId) {
+                        console.warn('[DATA_MESSAGES] callId unresolvable for fn:', funcName, '— message keys:', Object.keys(message));
+                    }
+                    handleFunctionCall({
+                        payload: {
+                            name: funcName,
+                            arguments: content,
+                            callId: resolvedCallId
+                        }
+                    });
+                    return;
+                }
+
+                // Intercept fetch-site-results
+                if (content.response_type === 'fetch-site-results' && content.search_query) {
+                    console.log('[PRODUCT-SEARCH] Intercepting fetch-site-results:', content.search_query);
+                    const query = content.search_query;
+
+                    const comparisonSplitters = [' vs ', ' versus ', ' compared to ', ' or ', ' and '];
+                    let product1 = null, product2 = null;
+                    for (const splitter of comparisonSplitters) {
+                        if (query.toLowerCase().includes(splitter)) {
+                            const parts = query.toLowerCase().split(splitter);
+                            if (parts.length >= 2) {
+                                product1 = findProduct(parts[0].trim());
+                                product2 = product1 ? findProduct(parts[1].trim(), product1) : findProduct(parts[1].trim());
+                                if (product1 && product2) break;
+                            }
+                        }
+                    }
+
+                    if (product1 && product2) {
+                        showProductComparison(product1.name, product2.name, content.context_snippet || query);
+                    } else {
+                        const product = findProduct(query);
+                        if (product) {
+                            showProductComparison(product.name, null, content.context_snippet || query);
+                        }
+                    }
+                    return;
+                }
+
+                return;
+            }
+        }
+
+        // Handle demo email form submission
+        function handleDemoEmailSubmit(e) {
+            e.preventDefault();
+            const email = demoEmailInput.value.trim();
+            if (email) {
+                agentEmail = email;
+                currentProfileId = generateProfileId();
+                console.log('Demo started with email:', agentEmail, 'profile_id:', currentProfileId);
+
+                sendToSessionMonitor('/api/register-email', {
+                    email: agentEmail,
+                    profile_id: currentProfileId
+                });
+
+                demoEmailModal.classList.remove('visible');
+                avatarContainer.style.visibility = '';
+                avatarContainer.style.pointerEvents = '';
+
+                initSDK();
+            }
+        }
+
+        // Initialize the SDK
+        async function initSDK() {
+            try {
+                if (!window.napsterSpacesSDK) {
+                    console.error('SDK not loaded');
+                    return;
+                }
+
+                spacesInstance = await window.napsterSpacesSDK.init({
+                    experienceId: EXPERIENCE_ID,
+                    container: '#avatar-sdk-container',
+                    startWithoutPreview: true,
+                    functionsLibraryId: FUNCTIONS_LIBRARY_ID,
+                    functions: ['show_product_compare', 'add_to_bag'],
+                    features: {
+                        backgroundRemoval: { enabled: true },
+                        waveform: { enabled: true, color: '#C9A96E' },
+                        inactiveTimeout: { enabled: true, duration: 5 * 60 * 1000 },
+                        disclaimer: { enabled: true, text: 'AI-powered Lumens design consultant' }
+                    },
+                    onReady: () => {
+                        console.log('Napster Spaces SDK is ready');
+                    },
+                    onError: (error) => {
+                        console.error('SDK Error:', error);
+                    },
+                    onData: handleOnData,
+                    onAvatarReady: () => {
+                        console.log('Avatar is ready');
+                        if (loadingOverlay) {
+                            loadingOverlay.classList.add('hidden');
+                        }
+                    }
+                });
+
+                console.log('SDK initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize SDK:', error);
+            }
+        }
+
+        // Initialize dragging
+        setupDragging();
+    </script>
+</body>
+</html>

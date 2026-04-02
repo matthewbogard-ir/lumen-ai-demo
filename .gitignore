@@ -1,0 +1,59 @@
+# Reference files (examples only)
+reference/
+reference\ /
+
+# Scripts folder — prompt scripts are tracked (API keys use env vars)
+# scripts/
+
+# Scraped content (generated data)
+scraped-content/
+
+# Scraper service (local only)
+scraper-service/
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.eggs/
+venv/
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Docker (local only)
+docker-compose.yml
+
+# Development files
+start.sh
+.env.example
